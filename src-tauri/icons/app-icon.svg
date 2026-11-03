@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b4c4d6"/>
+      <stop offset="0.62" stop-color="#e4e9ef"/>
+      <stop offset="1" stop-color="#f0f2f5"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="760" cy="300" r="300" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fffaf0" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#fffaf0" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="barrel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#55606e"/>
+      <stop offset="0.45" stop-color="#3a434f"/>
+      <stop offset="1" stop-color="#2b323b"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e2c48e"/>
+      <stop offset="1" stop-color="#b48b4f"/>
+    </linearGradient>
+    <clipPath id="tile"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="18"/>
+      <feOffset dx="0" dy="16"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.22"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <g clip-path="url(#tile)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#sky)"/>
+    <rect x="100" y="100" width="824" height="824" fill="url(#glow)"/>
+    <path d="M100 700 C 230 660, 330 690, 450 672 S 700 640, 800 668 S 900 690, 924 676 L924 924 L100 924 Z" fill="#d2dae4"/>
+    <path d="M100 760 C 260 728, 420 770, 560 748 S 820 722, 924 744 L924 924 L100 924 Z" fill="#eef1f4"/>
+
+    <!-- 稿紙 -->
+    <g transform="rotate(-7 512 520)" filter="url(#shadow)">
+      <rect x="300" y="226" width="404" height="530" rx="20" fill="#fcfaf6"/>
+      <rect x="350" y="292" width="170" height="16" rx="8" fill="#6f7b89"/>
+      <g fill="#bcc6d1">
+        <rect x="350" y="360" width="300" height="12" rx="6"/>
+        <rect x="350" y="410" width="276" height="12" rx="6"/>
+        <rect x="350" y="460" width="300" height="12" rx="6"/>
+        <rect x="350" y="510" width="214" height="12" rx="6"/>
+        <rect x="350" y="560" width="290" height="12" rx="6"/>
+      </g>
+      <!-- 正在寫的那一行 -->
+      <path d="M350 622 c 18 -14 30 12 46 0 s 28 -12 44 2 s 30 8 44 -4 s 26 -10 40 2 s 16 6 23 5"
+            fill="none" stroke="#3a434f" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+
+    <!-- 鋼筆：筆尖停在正在寫的地方 -->
+    <g transform="translate(560 620) rotate(-40) scale(0.74)" filter="url(#shadow)">
+      <path d="M0 0 L84 -27 L122 -27 L122 27 L84 27 Z" fill="url(#gold)"/>
+      <line x1="10" y1="0" x2="76" y2="0" stroke="#7a5a2c" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="80" cy="0" r="6" fill="#7a5a2c"/>
+      <rect x="120" y="-31" width="72" height="62" rx="10" fill="#2b323b"/>
+      <rect x="190" y="-35" width="16" height="70" rx="3" fill="url(#gold)"/>
+      <rect x="204" y="-37" width="350" height="74" rx="35" fill="url(#barrel)"/>
+      <rect x="380" y="-49" width="160" height="12" rx="6" fill="url(#gold)"/>
+      <rect x="226" y="-27" width="280" height="9" rx="4.5" fill="#ffffff" opacity="0.12"/>
+    </g>
+  </g>
+</svg>

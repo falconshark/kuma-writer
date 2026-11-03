@@ -1,0 +1,77 @@
+# 打包 macOS（.dmg）與 Debian/Ubuntu（.deb）安裝檔。
+# macOS 版只能在 Mac 上編譯，所以交給 GitHub 的 macOS 機器。
+#
+# 觸發方式：
+#   - 在 GitHub 的 Actions 頁面手動執行（workflow_dispatch），安裝檔會出現在該次執行的 Artifacts
+#   - 推送 v 開頭的標籤（例如 v0.3.0），另外會建立一個草稿 Release 並附上安裝檔
+name: Build installers
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+            rust-targets: aarch64-apple-darwin,x86_64-apple-darwin
+            script: build:mac
+            artifacts: |
+              src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+          - name: Debian
+            # 用較舊的 Ubuntu 編譯，相依的系統函式庫版本較低，新舊系統都裝得起來
+            os: ubuntu-22.04
+            rust-targets: ''
+            script: build:deb
+            artifacts: |
+              src-tauri/target/release/bundle/deb/*.deb
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安裝 Linux 編譯所需套件
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-targets }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - run: npm ci
+
+      - run: npm run ${{ matrix.script }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kuma-write-${{ matrix.name }}
+          path: ${{ matrix.artifacts }}
+          if-no-files-found: error
+
+      - name: 附加到草稿 Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: ${{ matrix.artifacts }}
