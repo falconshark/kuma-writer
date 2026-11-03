@@ -8,36 +8,38 @@
 </head>
 <body>
   <canvas id="scene"></canvas>
-  <div id="vignette"></div>
-  <div id="grain"></div>
-
-  <main id="scroller">
-    <div id="page">
-      <textarea id="editor" spellcheck="false" placeholder="開始寫吧……" autofocus></textarea>
-      <div id="mirror" aria-hidden="true"></div>
-    </div>
-  </main>
+  <textarea id="editor" spellcheck="false" placeholder="開始寫吧……" autofocus></textarea>
+  <div id="mirror" aria-hidden="true"></div>
+  <div id="lockbar"></div>
 
   <nav id="bar" class="fade">
-    <button data-act="docs" title="Ctrl+O">文件</button>
-    <button data-act="new" title="Ctrl+N">新文件</button>
-    <button data-act="export" title="匯出 TXT（Ctrl+E）">匯出</button>
-    <span class="dot">·</span>
+    <button class="free" data-act="docs" title="Ctrl+O">文件</button>
+    <button class="free" data-act="new" title="Ctrl+N">新文件</button>
+    <span class="dot free">·</span>
     <button data-act="look" title="場景、字體與版面（Ctrl+T 切換場景）">外觀</button>
+    <button data-act="sound" title="背景音與打字音效">聲音</button>
+    <button data-act="stats" title="每日寫作統計">統計</button>
     <span class="dot">·</span>
-    <button data-act="fullscreen" title="F11">全螢幕</button>
-    <button data-act="quit" title="Ctrl+Q">離開</button>
+    <button class="free" data-act="lock" title="Ctrl+L">小黑屋</button>
+    <button class="free" data-act="fullscreen" title="F11">全螢幕</button>
+    <button class="free" data-act="quit" title="Ctrl+Q">離開</button>
+    <span class="locked-only badge">已上鎖</span>
+    <button class="locked-only exit-only" data-act="emergency" title="抄寫一段句子後離開小黑屋">緊急出口</button>
   </nav>
 
-  <footer id="hud" class="fade"></footer>
+  <nav id="tabs" class="fade" hidden></nav>
+
+  <footer id="hud" class="fade"><div id="hud-lock"></div><div id="hud-line"></div></footer>
   <div id="toast"></div>
 
   <section class="panel" id="panel-docs">
     <button class="close" data-act="close" aria-label="關閉">×</button>
-    <h2>文件</h2>
-    <button class="wide" data-act="new">＋ 新文件</button>
+    <h2>最近的文件</h2>
+    <div class="row">
+      <button class="wide" data-act="new">＋ 新文件</button>
+      <button class="wide" data-act="open">開啟檔案…</button>
+    </div>
     <ul id="doc-list"></ul>
-    <p class="note" id="docs-dir"></p>
   </section>
 
   <section class="panel" id="panel-look">
@@ -57,8 +59,97 @@
       <label for="column-width">欄寬</label>
       <div class="range"><input type="range" id="column-width" min="480" max="1400" step="10"><output></output></div>
       <span>專注</span>
-      <label class="check"><input type="checkbox" id="typewriter"> 打字機：正在寫的那一行保持在中央（F9）</label>
+      <div class="stack">
+        <label class="check"><input type="checkbox" id="focus-paragraph"> 淡化目前段落以外的文字（F8）</label>
+        <label class="check"><input type="checkbox" id="typewriter"> 打字機：正在寫的那一行保持在中央（F9）</label>
+      </div>
     </div>
+  </section>
+
+  <section class="panel" id="panel-sound">
+    <button class="close" data-act="close" aria-label="關閉">×</button>
+    <h2>聲音</h2>
+    <p class="warn" id="audio-error" hidden></p>
+    <div class="grid">
+      <span>背景</span>
+      <div class="seg wrap" id="ambient">
+        <button data-v="Off">無</button>
+        <button data-v="Rain">雨</button>
+        <button data-v="Waves">海浪</button>
+        <button data-v="Wind">風</button>
+        <button data-v="Fire">爐火</button>
+        <button data-v="Drone">冥想</button>
+      </div>
+      <label for="ambient-volume">音量</label>
+      <div class="range"><input type="range" id="ambient-volume" min="0" max="1" step="0.05"><output></output></div>
+      <span>打字音效</span>
+      <div class="seg wrap" id="key-sound">
+        <button data-v="Off">無</button>
+        <button data-v="Soft">輕觸</button>
+        <button data-v="Typewriter">打字機</button>
+        <button data-v="Drop">水滴</button>
+      </div>
+      <label for="key-volume">音量</label>
+      <div class="range"><input type="range" id="key-volume" min="0" max="1" step="0.05"><output></output></div>
+    </div>
+  </section>
+
+  <section class="panel panel-wide" id="panel-stats">
+    <button class="close" data-act="close" aria-label="關閉">×</button>
+    <h2>寫作統計</h2>
+    <div class="today">
+      <div class="big" id="st-today">0</div>
+      <div>
+        <div id="st-today-sub"></div>
+        <div id="st-streak" class="muted"></div>
+      </div>
+    </div>
+    <div class="progress"><div id="st-progress"></div></div>
+    <div class="goal-row">
+      <label for="daily-goal">每日目標</label>
+      <span class="num"><input type="number" id="daily-goal" min="50" max="100000" step="50"> 字</span>
+      <span id="st-goal-done" class="accent"></span>
+    </div>
+    <div class="chart-head">
+      <span>近 30 天字數</span>
+      <span class="muted" id="st-hover">虛線為每日目標</span>
+    </div>
+    <svg id="st-chart" preserveAspectRatio="none"></svg>
+    <div class="chart-foot muted"><span id="st-first"></span><span>今天</span></div>
+    <p id="st-totals" class="muted"></p>
+  </section>
+
+  <section class="panel" id="panel-lock">
+    <button class="close" data-act="close" aria-label="關閉">×</button>
+    <h2>小黑屋</h2>
+    <p class="desc">進入後，在達成目標之前不能關閉視窗、離開全螢幕或切換文件。關掉程式也沒用：下次開啟時會接著鎖，計時只在程式開著時累積。</p>
+    <div class="grid">
+      <label class="check"><input type="checkbox" id="lock-use-time" checked> 寫滿</label>
+      <span class="num"><input type="number" id="lock-minutes" min="1" max="720"> 分鐘</span>
+      <label class="check"><input type="checkbox" id="lock-use-words"> 新增</label>
+      <span class="num"><input type="number" id="lock-words" min="10" max="200000" step="50"> 字</span>
+    </div>
+    <p class="desc muted" id="lock-both" hidden>兩個目標都要達成才能出關。</p>
+    <label class="check spaced"><input type="checkbox" id="lock-emergency" checked> 保留緊急出口（要一字不差抄寫一段句子才能離開）</label>
+    <button class="wide primary" data-act="enter-lock">進入小黑屋</button>
+  </section>
+
+  <section class="panel" id="panel-emergency">
+    <button class="close" data-act="close" aria-label="關閉">×</button>
+    <h2>緊急出口</h2>
+    <p class="desc">請一字不差地輸入下面這句話：</p>
+    <p class="phrase" id="phrase"></p>
+    <input type="text" id="emergency-input" autocomplete="off" spellcheck="false">
+    <div class="row">
+      <button class="wide" data-act="close">繼續寫</button>
+      <button class="wide primary" id="emergency-go" disabled>離開小黑屋</button>
+    </div>
+  </section>
+
+  <section class="panel" id="panel-done">
+    <h2>出關</h2>
+    <p class="done-msg" id="done-msg"></p>
+    <button class="wide primary" data-act="close">好</button>
   </section>
 
   <script src="scene.js"></script>

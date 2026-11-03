@@ -1,8 +1,9 @@
 [package]
 name = "kuma-write"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "沉浸式專注寫作軟體"
+license = "GPL-3.0-only"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -12,7 +13,13 @@ tauri = { version = "2", features = [] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 dirs = "6"
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+tauri-plugin-dialog = "2"
+cpal = "0.18"
+
+# Linux 上直接走 PulseAudio／PipeWire，避免 ALSA 預設裝置被佔用時沒有聲音
+[target.'cfg(target_os = "linux")'.dependencies]
+cpal = { version = "0.18", features = ["pulseaudio"] }
 
 [profile.release]
 opt-level = 3

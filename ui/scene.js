@@ -139,8 +139,8 @@ function ridge(ctx, w, h, base, amp, seed, color, fog) {
   ctx.fill();
 }
 
-/** 灰階雜訊，以 overlay 疊在畫面上，讓漸層不出現色帶，也多一點紙張般的質感 */
-function grainDataUrl() {
+/** 灰階雜訊，讓漸層不出現色帶，也多一點紙張般的質感 */
+function grainTile() {
   const size = 160;
   const c = document.createElement('canvas');
   c.width = c.height = size;
@@ -153,11 +153,33 @@ function grainDataUrl() {
     img.data[i + 3] = 255;
   }
   g.putImageData(img, 0, 0);
-  return c.toDataURL();
+  return c;
+}
+
+let grainCanvas = null;
+
+/** 四周微微變暗，再疊上一層顆粒。直接畫進背景，打字時不用每次重新混色 */
+function paintFinish(ctx, w, h, t) {
+  const r = Math.hypot(w, h) / 2;
+  const v = ctx.createRadialGradient(w / 2, h / 2, r * 0.45, w / 2, h / 2, r);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(1, `rgba(0,0,0,${t.vignette})`);
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, w, h);
+
+  grainCanvas ??= grainTile();
+  ctx.save();
+  // 顆粒以實際像素為單位，高解析度螢幕上才夠細
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.globalAlpha = t.grain;
+  ctx.fillStyle = ctx.createPattern(grainCanvas, 'repeat');
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.restore();
 }
 
 /** 把 canvas 調整成和顯示大小一致（考慮高解析度螢幕）並畫上場景 */
-function drawSceneOn(canvas, t) {
+function drawSceneOn(canvas, t, { finish = false } = {}) {
   const dpr = window.devicePixelRatio || 1;
   const { width, height } = canvas.getBoundingClientRect();
   canvas.width = Math.round(width * dpr);
@@ -165,5 +187,6 @@ function drawSceneOn(canvas, t) {
   const ctx = canvas.getContext('2d');
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   paintScene(ctx, width, height, t);
+  if (finish) paintFinish(ctx, width, height, t);
   return ctx;
 }

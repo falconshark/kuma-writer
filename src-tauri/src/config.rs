@@ -10,13 +10,6 @@ pub fn data_dir() -> PathBuf {
         .join("kuma-write")
 }
 
-pub fn docs_dir() -> PathBuf {
-    dirs::document_dir()
-        .or_else(dirs::home_dir)
-        .unwrap_or_else(|| PathBuf::from("."))
-        .join("KumaWrite")
-}
-
 /// 先寫入暫存檔再改名，避免寫到一半當機時毀掉原檔。
 pub fn write_atomic(path: &Path, contents: &str) -> io::Result<()> {
     if let Some(dir) = path.parent() {
