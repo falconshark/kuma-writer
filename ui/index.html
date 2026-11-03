@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kuma Write</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="scene"></canvas>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+
+  <main id="scroller">
+    <div id="page">
+      <textarea id="editor" spellcheck="false" placeholder="開始寫吧……" autofocus></textarea>
+      <div id="mirror" aria-hidden="true"></div>
+    </div>
+  </main>
+
+  <nav id="bar" class="fade">
+    <button data-act="docs" title="Ctrl+O">文件</button>
+    <button data-act="new" title="Ctrl+N">新文件</button>
+    <button data-act="export" title="匯出 TXT（Ctrl+E）">匯出</button>
+    <span class="dot">·</span>
+    <button data-act="look" title="場景、字體與版面（Ctrl+T 切換場景）">外觀</button>
+    <span class="dot">·</span>
+    <button data-act="fullscreen" title="F11">全螢幕</button>
+    <button data-act="quit" title="Ctrl+Q">離開</button>
+  </nav>
+
+  <footer id="hud" class="fade"></footer>
+  <div id="toast"></div>
+
+  <section class="panel" id="panel-docs">
+    <button class="close" data-act="close" aria-label="關閉">×</button>
+    <h2>文件</h2>
+    <button class="wide" data-act="new">＋ 新文件</button>
+    <ul id="doc-list"></ul>
+    <p class="note" id="docs-dir"></p>
+  </section>
+
+  <section class="panel" id="panel-look">
+    <button class="close" data-act="close" aria-label="關閉">×</button>
+    <h2>外觀</h2>
+    <div id="scenes"></div>
+    <div class="grid">
+      <span>字體</span>
+      <div class="seg" id="font-style">
+        <button data-font="Serif">明體</button>
+        <button data-font="Sans">黑體</button>
+      </div>
+      <label for="font-size">字級</label>
+      <div class="range"><input type="range" id="font-size" min="14" max="40" step="1"><output></output></div>
+      <label for="line-spacing">行距</label>
+      <div class="range"><input type="range" id="line-spacing" min="1.4" max="2.6" step="0.1"><output></output></div>
+      <label for="column-width">欄寬</label>
+      <div class="range"><input type="range" id="column-width" min="480" max="1400" step="10"><output></output></div>
+      <span>專注</span>
+      <label class="check"><input type="checkbox" id="typewriter"> 打字機：正在寫的那一行保持在中央（F9）</label>
+    </div>
+  </section>
+
+  <script src="scene.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

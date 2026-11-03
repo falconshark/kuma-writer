@@ -1,0 +1,23 @@
+[package]
+name = "kuma-write"
+version = "0.1.0"
+edition = "2021"
+description = "沉浸式專注寫作軟體，附「小黑屋」鎖定模式"
+
+[dependencies]
+# 用 OpenGL（glow）繪圖：wgpu／Vulkan 在部分 Linux 桌面上會卡住事件迴圈，收不到鍵盤與滑鼠輸入
+eframe = { version = "0.37", default-features = false, features = ["clipboard", "default_fonts", "glow", "wayland", "x11"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+dirs = "6"
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
+cpal = "0.18"
+
+# Linux 上直接走 PulseAudio／PipeWire，避免 ALSA 預設裝置被佔用時沒有聲音
+[target.'cfg(target_os = "linux")'.dependencies]
+cpal = { version = "0.18", features = ["pulseaudio"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
