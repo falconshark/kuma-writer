@@ -43,7 +43,7 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: 安裝 Linux 編譯所需套件
         if: runner.os == 'Linux'
@@ -52,7 +52,7 @@ jobs:
           sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file \
             libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev libasound2-dev
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: npm
@@ -65,9 +65,64 @@ jobs:
         with:
           workspaces: src-tauri
 
+      # Tauri 打包 Windows 安裝程式時要下載 NSIS 工具，快取起來就不用每次重新下載
+      - name: 快取 NSIS 工具
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\tauri
+          key: tauri-nsis-${{ runner.os }}
+
+      # Tauri 打包時會從 github.com/.../releases/download 下載 NSIS 與它的輔助外掛，
+      # 但這類網址常整批回 504。改走 GitHub API 先下載好、驗證過再放進 Tauri 的工具資料夾，
+      # Tauri 看到檔案齊全、雜湊正確就不會再自己下載。
+      # 網址與 SHA1 對應 @tauri-apps/cli 2.12.4（tauri-bundler 的 nsis/mod.rs），升級 CLI 時要一起更新
+      - name: 預先下載 NSIS 工具
+        if: runner.os == 'Windows'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tools="$(cygpath "$LOCALAPPDATA")/tauri"
+          nsis="$tools/NSIS"
+          dll="$nsis/Plugins/x86-unicode/additional/nsis_tauri_utils.dll"
+          if [ -f "$nsis/NSIS.exe" ] && [ -f "$dll" ]; then
+            echo "快取裡已經有 NSIS 工具"
+            exit 0
+          fi
+
+          # fetch <repo> <tag> <檔名> <存到哪> <sha1>
+          fetch() {
+            local id
+            id=$(curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" \
+              "https://api.github.com/repos/$1/releases/tags/$2" | jq -r --arg n "$3" '.assets[] | select(.name == $n) | .id')
+            curl -fsSL --retry 3 -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/octet-stream" \
+              -o "$4" "https://api.github.com/repos/$1/releases/assets/$id"
+            echo "$5  $4" | sha1sum -c -
+          }
+
+          rm -rf "$nsis" "$tools/nsis-3.13"
+          mkdir -p "$tools"
+          fetch tauri-apps/binary-releases nsis-3.13 nsis-3.13.zip "$RUNNER_TEMP/nsis.zip" db14f8af2ea346b786c6ae19343f61aaf5e09b8e
+          unzip -q "$RUNNER_TEMP/nsis.zip" -d "$tools"
+          mv "$tools/nsis-3.13" "$nsis"
+          mkdir -p "$(dirname "$dll")"
+          fetch tauri-apps/nsis-tauri-utils nsis_tauri_utils-v0.5.3 nsis_tauri_utils.dll "$dll" 75197fee3c6a814fe035788d1c34ead39349b860
+
       - run: npm ci
 
-      - run: npm run ${{ matrix.script }}
+      # 打包時會從 GitHub 下載工具，偶爾遇到 504 之類的暫時性錯誤，失敗就稍等再試。
+      # 重試時程式已經編譯好了，很快就會跑完
+      - name: 打包
+        shell: bash
+        run: |
+          for i in 1 2 3; do
+            npm run ${{ matrix.script }} && exit 0
+            echo "第 $i 次打包失敗，30 秒後重試"
+            sleep 30
+          done
+          exit 1
 
       - uses: actions/upload-artifact@v4
         with:
