@@ -42,12 +42,28 @@
     ],
     "linux": {
       "deb": {
-        "depends": ["libasound2t64 | libasound2"]
+        "depends": [
+          "libasound2t64 | libasound2"
+        ]
       }
     },
     "macOS": {
       "minimumSystemVersion": "10.15",
       "signingIdentity": "-"
+    },
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper"
+      },
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": [
+          "TradChinese",
+          "English"
+        ],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico"
+      }
     }
   }
 }

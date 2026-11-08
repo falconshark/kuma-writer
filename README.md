@@ -4,7 +4,7 @@ A quiet, full-screen writing app. Kuma Write gives you a soft painted landscape,
 
 It draws on OmmWriter's calm atmosphere, FocusWriter's practical writing tools, and the "little black room" (小黑屋) apps popular with Chinese writers, which lock you in until you reach your goal.
 
-Built with [Tauri 2](https://tauri.app): a Rust backend with an HTML/CSS interface. Runs on Linux and macOS. The interface is in Traditional Chinese.
+Built with [Tauri 2](https://tauri.app): a Rust backend with an HTML/CSS interface. Runs on Linux, macOS and Windows. The interface is in Traditional Chinese.
 
 ## Features
 
@@ -21,6 +21,7 @@ Word counts treat each CJK character as one word and count other languages by wh
 ## Saving
 
 - Documents are plain-text `.txt` files. You can also open `.md` files.
+- Files keep their original format. A file saved by Windows Notepad with CRLF line endings or a byte-order mark is written back the same way.
 - A new document starts as a draft. Drafts are autosaved inside the app's data folder, so nothing is lost if you close the app or it crashes.
 - The first time you press `Ctrl+S`, Kuma Write asks where to save. You can choose any folder, such as one inside Dropbox. After that, it saves back to that file about a second after you stop typing.
 - If you close a draft tab that has text in it, Kuma Write asks you where to save it first.
@@ -30,6 +31,7 @@ Settings, drafts, stats and lock-in state live in the app's data folder:
 
 - Linux: `~/.local/share/kuma-write/`
 - macOS: `~/Library/Application Support/kuma-write/`
+- Windows: `%APPDATA%\kuma-write\`
 
 ## Keyboard shortcuts
 
@@ -61,7 +63,7 @@ On macOS, use `Cmd` instead of `Ctrl`.
 - If you enabled the emergency exit before starting, you can leave early by typing out a fixed sentence exactly. Copying and pasting it won't work.
 - If the locked document is still a draft, `Ctrl+S` keeps it as a draft, because a save dialog would take focus away from the window. Choose a save location after you finish.
 
-A normal application can't block everything the operating system allows, such as switching virtual desktops or ending the process from a task manager. Kuma Write doesn't try to. The lock is still waiting when you come back.
+A normal application can't block everything the operating system allows, such as switching virtual desktops or ending the process from a task manager. Kuma Write doesn't try to. On Windows, the system may also refuse to hand focus back and flash the taskbar button instead. Either way, the lock is still waiting when you come back.
 
 ## Installing
 
@@ -70,6 +72,12 @@ A normal application can't block everything the operating system allows, such as
 ```sh
 sudo apt install ./Kuma\ Write_0.3.0_amd64.deb
 ```
+
+### Windows
+
+Run `Kuma Write_0.3.0_x64-setup.exe`. It installs for the current user only, so it doesn't need administrator rights. Kuma Write uses Microsoft Edge WebView2, which is built into Windows 10 and 11; on the rare machine without it, the installer downloads it.
+
+The installer isn't code-signed, so Windows SmartScreen may warn you. Click **More info**, then **Run anyway**.
 
 ### macOS
 
@@ -97,11 +105,12 @@ Then:
 npm run dev         # run in development mode
 npm run build:deb   # build a .deb (Linux)
 npm run build:mac   # build a universal .dmg for Intel and Apple Silicon (macOS only)
+npm run build:win   # build a Windows installer (Windows only)
 ```
 
 ### Building installers on GitHub
 
-macOS builds have to run on a Mac. The workflow in `.github/workflows/build.yml` builds the macOS and Debian installers on GitHub's runners:
+macOS and Windows installers have to be built on their own systems. The workflow in `.github/workflows/build.yml` builds all three installers (macOS, Windows and Debian) on GitHub's runners:
 
 - Run **Build installers** manually from the **Actions** tab, then download the installers from that run's **Artifacts**.
 - Or push a version tag, for example `git tag v0.3.0 && git push --tags`. This also creates a draft release with the installers attached.

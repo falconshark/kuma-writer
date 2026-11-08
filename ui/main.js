@@ -105,10 +105,16 @@ let doc = null;
 
 const newDraftId = () => Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
 
-function makeDoc(path, text, draft = null) {
+/** 檔案原本的格式：Windows 記事本存的檔案常用 CRLF 換行，有時開頭還有 BOM */
+function makeDoc(path, raw, draft = null) {
+  const bom = raw.startsWith('\uFEFF');
+  const crlf = raw.includes('\r\n');
+  const text = (bom ? raw.slice(1) : raw).replace(/\r\n?/g, '\n');
   return {
     path,
     draft: path ? null : draft || newDraftId(),
+    bom,
+    crlf,
     text,
     saved: text,
     startWords: countWords(text),
@@ -122,6 +128,9 @@ function makeDoc(path, text, draft = null) {
 }
 
 const docText = (d) => (d === doc ? editor.value : d.text);
+
+/** 存檔時照檔案原本的格式寫回，不偷偷改掉換行與 BOM */
+const onDisk = (d, text) => (d.bom ? '\uFEFF' : '') + (d.crlf ? text.replace(/\n/g, '\r\n') : text);
 
 /** 把某篇放進編輯區。目前那篇的內容、游標與捲動位置先收回去 */
 function show(d) {
@@ -167,7 +176,7 @@ async function saveNow() {
   const text = editor.value;
   if (text === d.saved) return;
   try {
-    if (d.path) await invoke('save_doc', { path: d.path, text });
+    if (d.path) await invoke('save_doc', { path: d.path, text: onDisk(d, text) });
     else await invoke('save_draft', { id: d.draft, text });
     d.saved = text;
     updateHud();
@@ -183,7 +192,7 @@ async function saveAs() {
   if (!path) return false;
   const text = editor.value;
   try {
-    await invoke('save_doc', { path, text });
+    await invoke('save_doc', { path, text: onDisk(doc, text) });
   } catch (e) {
     toast(`儲存失敗：${e}`);
     return false;
@@ -1117,6 +1126,13 @@ window.addEventListener('keydown', (e) => {
   const mod = e.ctrlKey || e.metaKey;
   const key = e.key.toLowerCase();
   let handled = true;
+
+  // 擋掉內建瀏覽器的快捷鍵（Windows 的 WebView2 尤其多）：重新整理、列印、搜尋列、上一頁等
+  if (key === 'f5' || key === 'f3' || key === 'f7' || (mod && ['r', 'p', 'f', 'g', 'j', 'u', 'h'].includes(key)) ||
+      (e.altKey && (key === 'arrowleft' || key === 'arrowright'))) {
+    e.preventDefault();
+    return;
+  }
 
   if (key === 'escape') {
     if (panelOpen()) closePanels();
