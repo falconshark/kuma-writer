@@ -3,7 +3,7 @@
 #
 # 觸發方式：
 #   - 在 GitHub 的 Actions 頁面手動執行（workflow_dispatch），安裝檔會出現在該次執行的 Artifacts
-#   - 推送 v 開頭的標籤（例如 v0.3.0），另外會建立一個草稿 Release 並附上安裝檔
+#   - 推送 v 開頭的標籤（例如 v1.0），會把安裝檔附加到該標籤的 Release（沒有的話就建立一個）
 name: Build installers
 
 on:
@@ -130,9 +130,9 @@ jobs:
           path: ${{ matrix.artifacts }}
           if-no-files-found: error
 
-      - name: 附加到草稿 Release
+      # 不指定 draft：已經公開的 Release 維持公開，不會被改回草稿
+      - name: 附加到 Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          draft: true
           files: ${{ matrix.artifacts }}

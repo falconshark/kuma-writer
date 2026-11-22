@@ -114,7 +114,7 @@ npm run build:win   # build a Windows installer (Windows only)
 macOS and Windows installers have to be built on their own systems. The workflow in `.github/workflows/build.yml` builds all three installers (macOS, Windows and Debian) on GitHub's runners:
 
 - Run **Build installers** manually from the **Actions** tab, then download the installers from that run's **Artifacts**.
-- Or push a version tag, for example `git tag v0.3.0 && git push --tags`. This also creates a draft release with the installers attached.
+- Or push a version tag, for example `git tag v1.0 && git push --tags`. The installers are attached to that tag's release, which is created if it doesn't exist yet.
 
 ## Project layout
 
