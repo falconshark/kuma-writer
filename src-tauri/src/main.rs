@@ -3,6 +3,7 @@
 mod audio;
 mod config;
 mod docs;
+mod docx;
 mod journal;
 mod lock;
 
@@ -150,15 +151,18 @@ fn start_dir(dir: Option<PathBuf>) -> Option<PathBuf> {
         .or_else(dirs::home_dir)
 }
 
-/// 問使用者要存在哪裡，dir 是上次用過的資料夾。文件一律存成純文字 .txt
+/// 問使用者要存在哪裡，dir 是上次用過的資料夾。
+/// 可以存成純文字 .txt 或 Word 的 .docx，format 是上次選的那種，預設排在前面
 #[tauri::command]
-async fn pick_save_path(app: AppHandle, name: String, dir: Option<PathBuf>) -> Option<PathBuf> {
-    let mut dialog = app
-        .dialog()
-        .file()
-        .set_title("儲存文件")
-        .add_filter("純文字", &["txt"])
-        .set_file_name(format!("{}.txt", docs::safe_file_name(&name)));
+async fn pick_save_path(app: AppHandle, name: String, dir: Option<PathBuf>, format: Option<String>) -> Option<PathBuf> {
+    let ext = if format.as_deref() == Some("docx") { "docx" } else { "txt" };
+    let mut dialog = app.dialog().file().set_title("儲存文件");
+    dialog = if ext == "docx" {
+        dialog.add_filter("Word 文件", &["docx"]).add_filter("純文字", &["txt"])
+    } else {
+        dialog.add_filter("純文字", &["txt"]).add_filter("Word 文件", &["docx"])
+    };
+    dialog = dialog.set_file_name(format!("{}.{ext}", docs::safe_file_name(&name)));
     if let Some(dir) = start_dir(dir) {
         dialog = dialog.set_directory(dir);
     }
@@ -168,7 +172,7 @@ async fn pick_save_path(app: AppHandle, name: String, dir: Option<PathBuf>) -> O
     let mut path = dialog.blocking_save_file()?.into_path().ok()?;
     // 有些平台的對話框不會自動補上副檔名
     if path.extension().is_none() {
-        path.set_extension("txt");
+        path.set_extension(ext);
     }
     Some(path)
 }
@@ -179,7 +183,7 @@ async fn pick_open_path(app: AppHandle, dir: Option<PathBuf>) -> Option<PathBuf>
         .dialog()
         .file()
         .set_title("開啟文件")
-        .add_filter("文字檔", &["txt", "md", "markdown"]);
+        .add_filter("文件", &["txt", "md", "markdown", "docx"]);
     if let Some(dir) = start_dir(dir) {
         dialog = dialog.set_directory(dir);
     }

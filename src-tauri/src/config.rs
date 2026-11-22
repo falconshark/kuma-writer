@@ -14,7 +14,7 @@ pub fn data_dir() -> PathBuf {
 
 /// 先寫入暫存檔再改名，避免寫到一半當機時毀掉原檔。
 /// Windows 上檔案若剛好被 Dropbox 之類的同步程式打開，改名會暫時失敗，所以重試幾次
-pub fn write_atomic(path: &Path, contents: &str) -> io::Result<()> {
+pub fn write_atomic(path: &Path, contents: impl AsRef<[u8]>) -> io::Result<()> {
     if let Some(dir) = path.parent() {
         fs::create_dir_all(dir)?;
     }

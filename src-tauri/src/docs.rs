@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use chrono::{DateTime, Local};
 use serde::Serialize;
 
-use crate::config;
+use crate::{config, docx};
 
 #[derive(Serialize)]
 pub struct DocEntry {
@@ -20,19 +20,32 @@ pub fn entries(paths: &[PathBuf]) -> Vec<DocEntry> {
         .iter()
         .filter_map(|path| {
             let mtime = fs::metadata(path).and_then(|m| m.modified()).ok()?;
-            let text = fs::read_to_string(path).ok()?;
+            let text = load(path).ok()?;
             let modified = DateTime::<Local>::from(mtime).format("%m/%d %H:%M").to_string();
             Some(DocEntry { title: title_of(&text), path: path.clone(), modified })
         })
         .collect()
 }
 
+/// Word 文件（.docx）以外都當作純文字
+fn is_docx(path: &Path) -> bool {
+    path.extension().is_some_and(|e| e.eq_ignore_ascii_case("docx"))
+}
+
 pub fn load(path: &Path) -> io::Result<String> {
-    fs::read_to_string(path)
+    if is_docx(path) {
+        docx::read(path)
+    } else {
+        fs::read_to_string(path)
+    }
 }
 
 pub fn save(path: &Path, text: &str) -> io::Result<()> {
-    config::write_atomic(path, text)
+    if is_docx(path) {
+        docx::write(path, text)
+    } else {
+        config::write_atomic(path, text)
+    }
 }
 
 /// 還沒選好存檔位置的新文件，每篇一個草稿檔，存在程式自己的資料夾，當機或關掉也不會遺失。

@@ -20,8 +20,9 @@ Word counts treat each CJK character as one word and count other languages by wh
 
 ## Saving
 
-- Documents are plain-text `.txt` files. You can also open `.md` files.
+- Documents are plain-text `.txt` files or Word `.docx` files. You can also open `.md` files. The save dialog offers both formats and remembers the one you chose last.
 - Files keep their original format. A file saved by Windows Notepad with CRLF line endings or a byte-order mark is written back the same way.
+- Word files are edited as text, one paragraph per line. When saving, Kuma Write compares your text with the file and only rewrites the paragraphs you changed. Everything else stays exactly as it was: headings, bold and italic text in untouched paragraphs, tables, images, headers, footers and page setup. A paragraph you edit keeps its paragraph format (heading style, indent, alignment) but takes a single font style, so bold or italic words inside it are lost. A new paragraph takes the format of the body paragraph above it. If you edit a line inside a table, that table becomes plain paragraphs.
 - A new document starts as a draft. Drafts are autosaved inside the app's data folder, so nothing is lost if you close the app or it crashes.
 - The first time you press `Ctrl+S`, Kuma Write asks where to save. You can choose any folder, such as one inside Dropbox. After that, it saves back to that file about a second after you stop typing.
 - If you close a draft tab that has text in it, Kuma Write asks you where to save it first.

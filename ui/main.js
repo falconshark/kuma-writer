@@ -97,6 +97,7 @@ function fmtMinutes(secs) {
 // path 為 null 的是還沒選存檔位置的草稿：每篇有自己的草稿檔（draft 編號），
 // 按 Ctrl+S 或關閉分頁時才問要存在哪裡。
 
+const isDocx = (path) => /\.docx$/i.test(path);
 const nameOf = (path) => path.slice(Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\')) + 1);
 const dirOf = (path) => path.slice(0, Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'))) || null;
 
@@ -188,7 +189,11 @@ async function saveNow() {
 
 /** 選位置存檔。使用者取消時回傳 false */
 async function saveAs() {
-  const path = await invoke('pick_save_path', { name: titleOf(editor.value), dir: cfg.last_dir || null });
+  const path = await invoke('pick_save_path', {
+    name: titleOf(editor.value),
+    dir: cfg.last_dir || null,
+    format: cfg.save_format || 'txt',
+  });
   if (!path) return false;
   const text = editor.value;
   try {
@@ -199,6 +204,8 @@ async function saveAs() {
   }
   invoke('save_draft', { id: doc.draft, text: '' }).catch(() => {});
   Object.assign(doc, { path, draft: null, saved: text });
+  // 下次存新文件時預設用同一種格式
+  cfg.save_format = isDocx(path) ? 'docx' : 'txt';
   rememberRecent(path);
   rememberTabs();
   renderTabs();
@@ -249,6 +256,12 @@ async function openDoc(path) {
     try {
       addDoc(makeDoc(path, await invoke('open_doc', { path })));
       rememberRecent(path);
+      if (isDocx(path) && !cfg.docx_hint_seen) {
+        // 第一次開 Word 文件時說明一下，之後就不再提
+        cfg.docx_hint_seen = true;
+        saveConfig();
+        toast('Word 文件只編輯文字：沒改到的段落保留原本格式，改過的段落會失去粗體等字元格式');
+      }
     } catch (e) {
       toast(`無法開啟：${e}`);
     }

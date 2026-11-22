@@ -16,6 +16,8 @@ dirs = "6"
 chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 tauri-plugin-dialog = "2"
 cpal = "0.18"
+zip = { version = "9.8.1", default-features = false, features = ["deflate-flate2-zlib-rs"] }
+similar = "3.2.1"
 
 # Linux 上直接走 PulseAudio／PipeWire，避免 ALSA 預設裝置被佔用時沒有聲音
 [target.'cfg(target_os = "linux")'.dependencies]
