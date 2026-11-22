@@ -71,12 +71,12 @@ A normal application can't block everything the operating system allows, such as
 ### Debian / Ubuntu
 
 ```sh
-sudo apt install ./Kuma\ Write_0.3.0_amd64.deb
+sudo apt install ./Kuma\ Write_1.1.1_amd64.deb
 ```
 
 ### Windows
 
-Run `Kuma Write_0.3.0_x64-setup.exe`. It installs for the current user only, so it doesn't need administrator rights. Kuma Write uses Microsoft Edge WebView2, which is built into Windows 10 and 11; on the rare machine without it, the installer downloads it.
+Run `Kuma Write_1.1.1_x64-setup.exe`. It installs for the current user only, so it doesn't need administrator rights. Kuma Write uses Microsoft Edge WebView2, which is built into Windows 10 and 11; on the rare machine without it, the installer downloads it.
 
 The installer isn't code-signed, so Windows SmartScreen may warn you. Click **More info**, then **Run anyway**.
 
