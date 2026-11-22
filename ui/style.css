@@ -94,6 +94,11 @@ body.typing, body.typing * { cursor: none !important; }
 
 /* ── 浮動介面 ─────────────────────────────── */
 
+/* 上方介面離螢幕頂端多遠。macOS 全螢幕時要讓出會滑下來的選單列與標題列
+   （一般螢幕約 24 + 28px，瀏海螢幕的選單列較高，約 37 + 28px） */
+:root { --inset-top: 0px; }
+body.mac-fullscreen { --inset-top: 56px; }
+
 .fade {
   opacity: 0;
   pointer-events: none;
@@ -109,7 +114,7 @@ body.chrome #bar, .panel.open, #toast.show {
 
 #bar {
   position: fixed;
-  top: 18px;
+  top: calc(18px + var(--inset-top));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -139,7 +144,7 @@ button:hover { color: var(--text); background: var(--hover); }
 /* 分頁列：跟著選單浮現 */
 #tabs {
   position: fixed;
-  top: 70px;
+  top: calc(70px + var(--inset-top));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -193,7 +198,7 @@ body.locked #tabs { display: none; }
 
 #toast {
   position: fixed;
-  top: 76px;
+  top: calc(76px + var(--inset-top));
   left: 50%;
   transform: translate(-50%, -6px);
   padding: 8px 20px;

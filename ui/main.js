@@ -1060,7 +1060,18 @@ appWindow.onFocusChanged(({ payload: focused }) => {
   }, 400);
 });
 
+// macOS 全螢幕時，滑鼠碰到螢幕頂端會滑下選單列和視窗標題列，蓋住上方的選單。
+// 這時把上方的介面往下移，讓出那一塊
+const isMac = /Mac/.test(navigator.userAgent);
+
+async function updateFullscreenInset() {
+  const fs = await appWindow.isFullscreen().catch(() => false);
+  document.body.classList.toggle('mac-fullscreen', isMac && fs);
+}
+updateFullscreenInset();
+
 appWindow.onResized(async () => {
+  updateFullscreenInset();
   if (lock && !(await appWindow.isFullscreen())) appWindow.setFullscreen(true).catch(() => {});
 });
 
